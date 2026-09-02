@@ -17,7 +17,7 @@ const useQualityTag = (musicInfo: LX.Music.MusicInfoOnline) => {
   let info: { type: BadgeType | null, text: string } = { type: null, text: '' }
   if (musicInfo.meta._qualitys.master) {
     info.type = 'secondary'
-    info.text = 'master'
+    info.text = 'Master'
   } else if (musicInfo.meta._qualitys.atmosplus) {
     info.type = 'secondary'
     info.text = 'atmosplus'
