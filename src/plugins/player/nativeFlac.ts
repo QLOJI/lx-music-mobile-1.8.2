@@ -37,7 +37,7 @@ interface NativeFlacPlaybackSnapshot extends NativeFlacPlaybackContext {
   state: NativeFlacState
 }
 
-const preferredPreciseQualities = new Set<LX.Quality>(['flac', 'flac24bit'])
+const preferredPreciseQualities = new Set<LX.Quality>(['flac', 'flac24bit', 'master', 'atmosplus', 'atmos'])
 const defaultUserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile'
 
 let currentTrackId = ''
