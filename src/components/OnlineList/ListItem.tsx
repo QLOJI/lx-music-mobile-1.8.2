@@ -15,7 +15,16 @@ export const ITEM_HEIGHT = scaleSizeH(LIST_ITEM_HEIGHT)
 const useQualityTag = (musicInfo: LX.Music.MusicInfoOnline) => {
   const t = useI18n()
   let info: { type: BadgeType | null, text: string } = { type: null, text: '' }
-  if (musicInfo.meta._qualitys.flac24bit) {
+  if (musicInfo.meta._qualitys.master) {
+    info.type = 'secondary'
+    info.text = 'master'
+  } else if (musicInfo.meta._qualitys.atmosplus) {
+    info.type = 'secondary'
+    info.text = 'atmosplus'
+  } else if (musicInfo.meta._qualitys.atmos) {
+    info.type = 'secondary'
+    info.text = 'atmos'
+  } else if (musicInfo.meta._qualitys.flac24bit) {
     info.type = 'secondary'
     info.text = t('quality_lossless_24bit')
   } else if (musicInfo.meta._qualitys.flac ?? musicInfo.meta._qualitys.ape) {
