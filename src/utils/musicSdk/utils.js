@@ -7,7 +7,7 @@ import { decodeName } from '../index'
  * @param {*} type
  */
 
-export const QUALITYS = ['flac24bit', 'flac', 'wav', 'ape', '320k', '192k', '128k']
+export const QUALITYS = ['master', 'atmosplus', 'atmos', 'flac24bit', 'flac', 'wav', 'ape', '320k', '192k', '128k']
 export const getMusicType = (info, type) => {
   const list = global.lx.qualityList[info.source]
   if (!list) return '128k'
