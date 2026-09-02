@@ -57,6 +57,22 @@ export const toNewMusicInfo = (oldMusicInfo: any): LX.Music.MusicInfo => {
       })
     }
 
+    // 除酷我/咪咕外的源（酷狗/QQ/网易）：在线曲目一律在最高档之上追加 master 顶级，
+    // 保留原有档位（flac24bit 等）。让搜索/排行榜/歌单的角标显示 master，并按"优先播放音质"请求该档。
+    if (['kg', 'tx', 'wy'].includes(oldMusicInfo.source)) {
+      const _qualitys = meta._qualitys as Record<string, any>
+      const realQualityList = ['flac24bit', 'flac', 'wav', 'ape', '320k', '192k', '128k']
+      const bestType = realQualityList.find(type => _qualitys[type])
+      if (!_qualitys.master) {
+        _qualitys.master = bestType ? { ..._qualitys[bestType] } : { size: 0 }
+      }
+      const qualityList = meta.qualitys as any[]
+      if (qualityList && !qualityList.some(quality => quality && quality.type == 'master')) {
+        const best = bestType ? qualityList.find(quality => quality && quality.type == bestType) : null
+        qualityList.push(best ? { ...best, type: 'master' } : { type: 'master', size: 0 })
+      }
+    }
+
     switch (oldMusicInfo.source) {
       case 'kg':
         meta.hash = oldMusicInfo.hash
