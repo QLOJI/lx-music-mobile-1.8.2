@@ -217,6 +217,8 @@ export const getOnlineOtherSourcePicByLocal = async(musicInfo: LX.Music.MusicInf
 
 export const TRY_QUALITYS_LIST = ['master', 'atmosplus', 'atmos', 'flac24bit', 'flac', '320k'] as const
 type TryQualityType = typeof TRY_QUALITYS_LIST[number]
+/** 高音质档（不要求当前音源脚本 qualitys 声明即可请求，由后端脚本自行处理未知档） */
+const PREMIUM_QUALITYS = new Set<LX.Quality>(['master', 'atmosplus', 'atmos'])
 export const getPlayQuality = (highQuality: LX.Quality, musicInfo: LX.Music.MusicInfoOnline): LX.Quality => {
   let type: LX.Quality = '128k'
   if (TRY_QUALITYS_LIST.includes(highQuality as TryQualityType)) {
@@ -224,7 +226,7 @@ export const getPlayQuality = (highQuality: LX.Quality, musicInfo: LX.Music.Musi
 
     let t = TRY_QUALITYS_LIST
       .slice(TRY_QUALITYS_LIST.indexOf(highQuality as TryQualityType))
-      .find(q => musicInfo.meta._qualitys[q] && list?.includes(q))
+      .find(q => musicInfo.meta._qualitys[q] && (PREMIUM_QUALITYS.has(q) || list?.includes(q)))
 
     if (t) type = t
   }
