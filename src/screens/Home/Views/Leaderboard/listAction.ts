@@ -1,8 +1,9 @@
-import { createList, setTempList } from '@/core/list'
-import { playList } from '@/core/player/player'
+import { createList } from '@/core/list'
+import { refreshDefaultList, stageOnlineListToDefault } from '@/core/playListToDefault'
 import { getListDetail, getListDetailAll } from '@/core/leaderboard'
 import { LIST_IDS } from '@/config/constant'
 import listState from '@/store/list/state'
+import playerState from '@/store/player/state'
 import syncSourceList from '@/core/syncSourceList'
 import { confirmDialog, toMD5, toast } from '@/utils/tools'
 
@@ -15,19 +16,17 @@ export const handlePlay = async(id: string, list?: LX.Music.MusicInfoOnline[], i
   const listId = getListId(id)
   if (!list?.length) list = (await getListDetail(id, 1)).list
   if (list?.length) {
-    await setTempList(listId, [...list])
-    void playList(LIST_IDS.TEMP, index)
+    await stageOnlineListToDefault(listId, [...list], index)
     isPlayingList = true
   }
   const fullList = await getListDetailAll(id)
   if (!fullList.length) return
   if (isPlayingList) {
-    if (listState.tempListMeta.id == listId) {
-      await setTempList(listId, [...fullList])
+    if (listState.tempListMeta.id == listId && playerState.playInfo.playerListId == LIST_IDS.DEFAULT) {
+      await refreshDefaultList([...fullList])
     }
   } else {
-    await setTempList(listId, [...fullList])
-    void playList(LIST_IDS.TEMP, index)
+    await stageOnlineListToDefault(listId, [...fullList], index)
   }
 }
 
