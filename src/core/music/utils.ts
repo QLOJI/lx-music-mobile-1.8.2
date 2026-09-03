@@ -215,23 +215,22 @@ export const getOnlineOtherSourcePicByLocal = async(musicInfo: LX.Music.MusicInf
   })
 }
 
-export const TRY_QUALITYS_LIST = ['master', 'atmosplus', 'atmos', 'flac24bit', 'flac', '320k'] as const
+export const TRY_QUALITYS_LIST = ['master', 'atmos', 'flac24bit', 'flac', '320k'] as const
 
 /**
- * 由「优先播放的音质」得到本次取流候选队列：
- * 所选档优先（曲目数据标注了就直接取；未标注也先试一次所选档），
- * 失败再在同一音源内按曲目标注的更低档由高到低降级，最后保证落到 128k。
+ * 由「优先播放的音质」得到本次取流候选队列（降级链）：
+ * 从所选档开始，按 master→atmos→flac24bit→flac→320k→128k 依次降级，
+ * 前一档取不到就直接试下一档，直到取到可用地址为止；128k 恒为最后兜底。
+ * 不再以曲目标注的可用档列表作为中间档门槛（曲目标注缺失时也照常逐级尝试）。
+ * 注：Atmos_Plus 已取消，不再作为可选取流档。
  */
-export const getPlayQualityCandidates = (highQuality: LX.Quality, musicInfo: LX.Music.MusicInfoOnline): LX.Quality[] => {
+export const getPlayQualityCandidates = (highQuality: LX.Quality, _musicInfo: LX.Music.MusicInfoOnline): LX.Quality[] => {
   const ladder = [...TRY_QUALITYS_LIST, '128k'] as LX.Quality[]
-  const idx = ladder.indexOf(highQuality)
+  let idx = ladder.indexOf(highQuality)
+  // 旧设置里可能已把「优先播放的音质」存成被取消的 atmosplus，按它的下一档 atmos 处理
+  if (idx < 0 && highQuality == 'atmosplus') idx = ladder.indexOf('atmos')
   if (idx < 0) return ['128k']
-  const below = ladder.slice(idx + 1)
-  const candidates = [highQuality]
-  for (const q of below) {
-    if (musicInfo.meta._qualitys[q] || q == '128k') candidates.push(q)
-  }
-  return Array.from(new Set(candidates))
+  return ladder.slice(idx)
 }
 
 /** 取流首选档：即「优先播放的音质」（对应候选队列首项） */
