@@ -10,7 +10,6 @@ import {
 } from './screenNames'
 
 import themeState from '@/store/theme/state'
-import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import { getStatusBarStyle } from './utils'
 import { windowSizeTools } from '@/utils/windowSizeTools'
 import { type ListInfoItem } from '@/store/songlist/state'
@@ -85,7 +84,7 @@ export async function pushHomeScreen() {
     },
   })
 }
-export function pushPlayDetailScreen(componentId: string, skipAnimation = false) {
+export function pushPlayDetailScreen(componentId: string) {
   /*
     Navigation.setDefaultOptions({
       topBar: {
@@ -144,87 +143,12 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
             componentBackgroundColor: theme['c-content-background'],
           },
           animations: {
-            push: skipAnimation ? {} : {
-              sharedElementTransitions: [
-                {
-                  fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  duration: 560,
-                  interpolation: { type: 'accelerateDecelerate' },
-                },
-              ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
-                  alpha: {
-                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 520,
-                  },
-                  translationY: {
-                    from: -32, // Animate translationY from 16dp to 0dp
-                    duration: 520,
-                  },
-                },
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
-                  alpha: {
-                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 520,
-                  },
-                  translationY: {
-                    from: 32, // Animate translationY from 16dp to 0dp
-                    duration: 520,
-                  },
-                },
-              ],
-              // content: {
-              //   translationX: {
-              //     from: windowSizeTools.getSize().width,
-              //     to: 0,
-              //     duration: 300,
-              //   },
-              // },
+            // 完全无动画：点击封面立即切换进/出播放页，不做共享元素/透明度/位移动画
+            push: {
+              enabled: false,
             },
             pop: {
-              sharedElementTransitions: [
-                {
-                  fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  duration: 560,
-                  interpolation: { type: 'accelerateDecelerate' },
-                },
-              ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
-                  alpha: {
-                    to: 0, // We don't declare 'from' value as that is the element's current alpha value, here we're essentially animating from 1 to 0
-                    duration: 520,
-                  },
-                  translationY: {
-                    to: -32, // Animate translationY from 0dp to -32dp
-                    duration: 520,
-                  },
-                },
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
-                  alpha: {
-                    to: 0,
-                    duration: 520,
-                  },
-                  translationY: {
-                    to: 32, // Animate translationY from 0dp to 32dp
-                    duration: 520,
-                  },
-                },
-              ],
-              // content: {
-              //   translationX: {
-              //     from: 0,
-              //     to: windowSizeTools.getSize().width,
-              //     duration: 300,
-              //   },
-              // },
+              enabled: false,
             },
           },
         },
@@ -262,75 +186,12 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
             componentBackgroundColor: theme['c-content-background'],
           },
           animations: {
+            // 完全无动画：点击封面立即切换进/出歌单详情页，不做共享元素/透明度/位移动画
             push: {
-              sharedElementTransitions: [
-                {
-                  fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
-                  toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
-                  duration: 560,
-                  interpolation: { type: 'accelerateDecelerate' },
-                },
-              ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
-                  alpha: {
-                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 520,
-                  },
-                  translationX: {
-                    from: 16, // Animate translationX from 16dp to 0dp
-                    duration: 520,
-                  },
-                },
-              ],
-              // content: {
-              //   scaleX: {
-              //     from: 1.2,
-              //     to: 1,
-              //     duration: 200,
-              //   },
-              //   scaleY: {
-              //     from: 1.2,
-              //     to: 1,
-              //     duration: 200,
-              //   },
-              //   alpha: {
-              //     from: 0,
-              //     to: 1,
-              //     duration: 200,
-              //   },
-              // },
+              enabled: false,
             },
             pop: {
-              sharedElementTransitions: [
-                {
-                  fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
-                  toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
-                  duration: 560,
-                  interpolation: { type: 'accelerateDecelerate' },
-                },
-              ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
-                  alpha: {
-                    to: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 520,
-                  },
-                  translationX: {
-                    to: 16, // Animate translationX from 16dp to 0dp
-                    duration: 520,
-                  },
-                },
-              ],
-              // content: {
-              //   alpha: {
-              //     from: 1,
-              //     to: 0,
-              //     duration: 200,
-              //   },
-              // },
+              enabled: false,
             },
           },
         },
