@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useImperativeHandle, useRef } from 'react'
 import OnlineList, { type OnlineListType, type OnlineListProps } from '@/components/OnlineList'
 import { search } from '@/core/search/music'
+import { stageOnlineListToDefault } from '@/core/playListToDefault'
 import searchMusicState, { type Source } from '@/store/search/music/state'
 
 // export type MusicListProps = Pick<OnlineListProps,
@@ -78,10 +79,20 @@ export default forwardRef<MusicListType, {}>((props, ref) => {
     })
   }
 
+  // 搜索点歌：把当前已加载的整份搜索结果按顺序写入试听列表并从所选歌曲处播放
+  const handlePlayList: OnlineListProps['onPlayList'] = (index) => {
+    const source = searchMusicState.source
+    const info = searchMusicState.listInfos[source]
+    if (info?.list.length) {
+      void stageOnlineListToDefault(`search__${source}__${searchMusicState.searchText}`, info.list, index)
+    }
+  }
+
   return <OnlineList
     ref={listRef}
     onRefresh={handleRefresh}
     onLoadMore={handleLoadMore}
+    onPlayList={handlePlayList}
     checkHomePagerIdle
   />
 })
