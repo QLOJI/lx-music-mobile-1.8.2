@@ -34,13 +34,20 @@ import { eapi } from './utils/crypto'
 //   return lxlyric.trim()
 // }
 
-const eapiRequest = (url, data) => {
-  return httpFetch('https://interface3.music.163.com/eapi/song/lyric/v1', {
+// 网易云 eapi 歌词接口有多个可用的接口域名，优先用主域名，失败/风控时逐个降级
+const EAPI_LYRIC_URLS = [
+  'https://interface.music.163.com/eapi/song/lyric/v1',
+  'https://interface3.music.163.com/eapi/song/lyric/v1',
+]
+
+const eapiRequest = (url, data, hostUrl = EAPI_LYRIC_URLS[0]) => {
+  return httpFetch(hostUrl, {
     method: 'post',
     headers: {
       'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.90 Safari/537.36',
       origin: 'https://music.163.com',
-      // cookie: 'os=pc; deviceId=A9C064BB4584D038B1565B58CB05F95290998EE8B025AA2D07AE; osver=Microsoft-Windows-10-Home-China-build-19043-64bit; appver=2.5.2.197409; channel=netease; MUSIC_A=37a11f2eb9de9930cad479b2ad495b0e4c982367fb6f909d9a3f18f876c6b49faddb3081250c4980dd7e19d4bd9bf384e004602712cf2b2b8efaafaab164268a00b47359f85f22705cc95cb6180f3aee40f5be1ebf3148d888aa2d90636647d0c3061cd18d77b7a0; __csrf=05b50d54082694f945d7de75c210ef94; mode=Z7M-KP5(7)GZ; NMTID=00OZLp2VVgq9QdwokUgq3XNfOddQyIAAAF_6i8eJg; ntes_kaola_ad=1',
+      // 注意：eapi 请求带 Cookie/os 参数时服务端可能返回加密响应，本请求层未做解密，
+      // 故保持匿名（无 Cookie）请求，服务端对匿名请求返回的是可直接解析的 JSON。
     },
     form: eapi(url, data),
   })
@@ -58,12 +65,13 @@ const parseTools = {
   rxps: {
     info: /^{"/,
     lineTime: /^\[(\d+),\d+\]/,
-    wordTime: /\(\d+,\d+,\d+\)/,
-    wordTimeAll: /(\(\d+,\d+,\d+\))/g,
+    // 网易云 yrc 逐字歌词的字时间为 (开始ms,持续ms,类型)；个别歌曲/旧格式为两位 (开始ms,持续ms)，一并兼容
+    wordTime: /\(-?\d+,-?\d+(?:,-?\d+)?\)/,
+    wordTimeAll: /(\(-?\d+,-?\d+(?:,-?\d+)?\))/g,
   },
   msFormat(timeMs) {
     if (Number.isNaN(timeMs)) return ''
-    let ms = timeMs % 1000
+    let ms = String(timeMs % 1000).padStart(3, '0')
     timeMs /= 1000
     let m = parseInt(timeMs / 60).toString().padStart(2, '0')
     timeMs %= 60
@@ -96,7 +104,7 @@ const parseTools = {
       let times = words.match(this.rxps.wordTimeAll)
       if (!times) continue
       times = times.map(time => {
-        const result = /\((\d+),(\d+),\d+\)/.exec(time)
+        const result = /\((-?\d+),(-?\d+)(?:,-?\d+)?\)/.exec(time)
         return `<${Math.max(parseInt(result[1]) - startMsTime, 0)},${result[2]}>`
       })
       const wordArr = words.split(this.rxps.wordTime)
@@ -264,7 +272,7 @@ const fixTimeLabel = (lrc, tlrc, romalrc) => {
 
 // https://github.com/Binaryify/NeteaseCloudMusicApi/blob/master/module/lyric_new.js
 export default songmid => {
-  const requestObj = eapiRequest('/api/song/lyric/v1', {
+  const lyricData = {
     id: songmid,
     cp: false,
     tv: 0,
@@ -274,15 +282,33 @@ export default songmid => {
     yv: 0,
     ytv: 0,
     yrv: 0,
-  })
-  requestObj.promise = requestObj.promise.then(({ body }) => {
-    // console.log(body)
-    if (body.code !== 200 || !body?.lrc?.lyric) return Promise.reject(new Error('Get lyric failed'))
-    const fixTimeLabelLrc = fixTimeLabel(body.lrc.lyric, body.tlyric?.lyric, body.romalrc?.lyric)
-    const info = parseTools.parse(body.yrc?.lyric, body.ytlrc?.lyric, body.yromalrc?.lyric, fixTimeLabelLrc.lrc, fixTimeLabelLrc.tlrc, fixTimeLabelLrc.romalrc)
-    // console.log(info)
-    if (!info.lyric) return Promise.reject(new Error('Get lyric failed'))
-    return info
-  })
+  }
+  // 逐字歌词说明：网易云歌词接口的 yrc 字段（新版逐字）只在“该歌曲确有逐字歌词”时才会返回；
+  // 若返回的仅是普通 lrc，说明服务端没有该曲的逐字数据，此时与其他音源一致地按普通歌词展示。
+  const getLyricFromHost = async() => {
+    let lastErr
+    for (const hostUrl of EAPI_LYRIC_URLS) {
+      try {
+        const { body } = await eapiRequest('/api/song/lyric/v1', lyricData, hostUrl).promise
+        // console.log(body)
+        if (body.code !== 200 || !body?.lrc?.lyric) {
+          lastErr = new Error('Get lyric failed')
+          continue
+        }
+        const fixTimeLabelLrc = fixTimeLabel(body.lrc.lyric, body.tlyric?.lyric, body.romalrc?.lyric)
+        const info = parseTools.parse(body.yrc?.lyric, body.ytlrc?.lyric, body.yromalrc?.lyric, fixTimeLabelLrc.lrc, fixTimeLabelLrc.tlrc, fixTimeLabelLrc.romalrc)
+        // console.log(info)
+        if (!info.lyric) throw new Error('Get lyric failed')
+        return info
+      } catch (err) {
+        lastErr = err
+      }
+    }
+    throw lastErr ?? new Error('Get lyric failed')
+  }
+  const requestObj = {
+    promise: getLyricFromHost(),
+    cancelHttp() {},
+  }
   return requestObj
 }
