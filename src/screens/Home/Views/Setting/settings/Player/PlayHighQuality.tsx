@@ -9,19 +9,28 @@ import { updateSetting } from '@/core/common'
 import { useI18n } from '@/lang'
 import { TRY_QUALITYS_LIST } from '@/core/music/utils'
 
+const QUALITY_LABELS: Partial<Record<LX.Quality, string>> = {
+  '128k': '128K',
+  '320k': '320K',
+  flac: 'Flac',
+  flac24bit: 'Flac24bit',
+  atmos: 'Atmos',
+  atmosplus: 'Atmos_Plus',
+  master: 'Master',
+}
+
 const useActive = (id: LX.Quality) => {
   const q = useSettingValue('player.playQuality')
   const isActive = useMemo(() => q == id, [q, id])
   return isActive
 }
 
-const Item = ({ id, name }: {
+const Item = ({ id }: {
   id: LX.Quality
-  name: string
 }) => {
   const isActive = useActive(id)
   // const [toggleCheckBox, setToggleCheckBox] = useState(false)
-  return <CheckBox marginRight={8} check={isActive} label={name} onChange={() => { updateSetting({ 'player.playQuality': id }) }} need />
+  return <CheckBox marginBottom={6} check={isActive} label={QUALITY_LABELS[id] ?? id} onChange={() => { updateSetting({ 'player.playQuality': id }) }} need />
 }
 
 export default memo(() => {
@@ -34,7 +43,7 @@ export default memo(() => {
     <SubTitle title={t('setting_play_play_quality')}>
       <View style={styles.list}>
         {
-          playQualityList.map((q) => <Item name={q} id={q} key={q} />)
+          playQualityList.map((q) => <Item id={q} key={q} />)
         }
       </View>
     </SubTitle>
@@ -43,8 +52,8 @@ export default memo(() => {
 
 const styles = StyleSheet.create({
   list: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
   },
 })
 
