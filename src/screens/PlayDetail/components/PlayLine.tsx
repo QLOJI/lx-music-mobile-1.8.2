@@ -1,10 +1,9 @@
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react'
-import { type NativeScrollEvent, type NativeSyntheticEvent, View, TouchableOpacity, Animated } from 'react-native'
+import { type NativeScrollEvent, type NativeSyntheticEvent, type LayoutChangeEvent, View, TouchableOpacity, Animated } from 'react-native'
 import Text from '@/components/common/Text'
 import { createStyle } from '@/utils/tools'
 import { type Lines } from 'lrc-file-parser'
 import { useTheme } from '@/store/theme/hook'
-import { BorderWidths } from '@/theme'
 import { formatPlayTime2 } from '@/utils'
 import { Icon } from '@/components/common/Icon'
 
@@ -22,12 +21,16 @@ export interface PlayLineProps {
 
 const ANIMATION_DURATION = 300
 
+const DASH_LEN = 4
+const DASH_GAP = 4
+
 export default forwardRef<PlayLineType, PlayLineProps>(({ onPlayLine }, ref) => {
   const theme = useTheme()
   const [scrollInfo, setScrollInfo] = useState<NativeSyntheticEvent<NativeScrollEvent>['nativeEvent'] | null>(null)
   const [listLayoutInfo, setListLayoutInfo] = useState<{ spaceHeight: number, lineHeights: number[] }>({ spaceHeight: 0, lineHeights: [] })
   const [lyricLines, setLyricLines] = useState<Lines>([])
   const [visible, setVisible] = useState(false)
+  const [dashWidth, setDashWidth] = useState(0)
   const opsAnim = useRef<Animated.Value>(
     new Animated.Value(0),
   ).current
@@ -67,6 +70,11 @@ export default forwardRef<PlayLineType, PlayLineProps>(({ onPlayLine }, ref) => 
     onPlayLine(time / 1000)
   }
 
+  const handleLineLayout = (event: LayoutChangeEvent) => {
+    const width = event.nativeEvent.layout.width
+    setDashWidth((prevWidth: number) => (prevWidth == width ? prevWidth : width))
+  }
+
   if (!scrollInfo || !visible) return null
   const offset = scrollInfo.contentOffset.y + scrollInfo.layoutMeasurement.height * 0.4
   let lineOffset = listLayoutInfo.spaceHeight
@@ -84,7 +92,15 @@ export default forwardRef<PlayLineType, PlayLineProps>(({ onPlayLine }, ref) => 
     <Animated.View style={{ ...styles.playLine, opacity: opsAnim }}>
       <Text style={styles.label} color={theme['c-primary-font']} size={13}>{timeLabel}</Text>
       <View style={styles.lineContent}>
-        <View style={{ ...styles.line, borderTopColor: theme['c-primary-alpha-300'] }} />
+        <View style={styles.line} onLayout={handleLineLayout}>
+          {
+            dashWidth > 0
+              ? Array.from({ length: Math.floor((dashWidth + DASH_GAP) / (DASH_LEN + DASH_GAP)) }, (_, index) => (
+                <View key={index} style={{ ...styles.dash, backgroundColor: theme['c-primary-alpha-300'] }} />
+              ))
+              : null
+          }
+        </View>
         <TouchableOpacity style={styles.button} onPress={handlePlayLine}>
           <Icon name="play" color={theme['c-button-font']} size={18} />
         </TouchableOpacity>
@@ -124,11 +140,18 @@ const styles = createStyle({
   },
   line: {
     marginLeft: 30,
-    // iOS 上高度为 0 的 View 不会绘制 dashed 边框，这里给一个实际高度
-    height: BorderWidths.normal2,
-    borderTopWidth: BorderWidths.normal2,
-    borderStyle: 'dashed',
+    // iOS 对 1px 高度的 dashed 边框渲染不可靠（不可见），
+    // 这里改为由若干个固定宽/间距的小色块（dash）自行拼出虚线，保证可见
+    height: 2,
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  dash: {
+    width: DASH_LEN,
+    height: 2,
+    marginRight: DASH_GAP,
   },
   button: {
     flex: 0,
