@@ -149,6 +149,8 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  springDuration: 0.75,
+                  springDamping: 0.9,
                   interpolation: { type: 'spring' },
                 },
               ],
@@ -157,22 +159,22 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
                   alpha: {
                     from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 300,
+                    duration: 520,
                   },
                   translationY: {
                     from: -32, // Animate translationY from 16dp to 0dp
-                    duration: 300,
+                    duration: 520,
                   },
                 },
                 {
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
                   alpha: {
                     from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 300,
+                    duration: 520,
                   },
                   translationY: {
                     from: 32, // Animate translationY from 16dp to 0dp
-                    duration: 300,
+                    duration: 520,
                   },
                 },
               ],
@@ -189,6 +191,8 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  springDuration: 0.75,
+                  springDamping: 0.9,
                   interpolation: { type: 'spring' },
                 },
               ],
@@ -197,22 +201,22 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
                   alpha: {
                     to: 0, // We don't declare 'from' value as that is the element's current alpha value, here we're essentially animating from 1 to 0
-                    duration: 300,
+                    duration: 520,
                   },
                   translationY: {
                     to: -32, // Animate translationY from 0dp to -32dp
-                    duration: 300,
+                    duration: 520,
                   },
                 },
                 {
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
                   alpha: {
                     to: 0,
-                    duration: 300,
+                    duration: 520,
                   },
                   translationY: {
                     to: 32, // Animate translationY from 0dp to 32dp
-                    duration: 300,
+                    duration: 520,
                   },
                 },
               ],
@@ -265,6 +269,8 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
                 {
                   fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
                   toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
+                  springDuration: 0.75,
+                  springDamping: 0.9,
                   interpolation: { type: 'spring' },
                 },
               ],
@@ -273,11 +279,11 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
                   id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
                   alpha: {
                     from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 300,
+                    duration: 520,
                   },
                   translationX: {
                     from: 16, // Animate translationX from 16dp to 0dp
-                    duration: 300,
+                    duration: 520,
                   },
                 },
               ],
@@ -304,6 +310,8 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
                 {
                   fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
                   toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
+                  springDuration: 0.75,
+                  springDamping: 0.9,
                   interpolation: { type: 'spring' },
                 },
               ],
@@ -312,11 +320,11 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
                   id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
                   alpha: {
                     to: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 300,
+                    duration: 520,
                   },
                   translationX: {
                     to: 16, // Animate translationX from 16dp to 0dp
-                    duration: 300,
+                    duration: 520,
                   },
                 },
               ],
