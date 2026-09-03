@@ -185,13 +185,44 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
               // },
             },
             pop: {
-              content: {
-                translationX: {
-                  from: 0,
-                  to: windowSizeTools.getSize().width,
-                  duration: 300,
+              sharedElementTransitions: [
+                {
+                  fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  interpolation: { type: 'spring' },
                 },
-              },
+              ],
+              elementTransitions: [
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
+                  alpha: {
+                    to: 0, // We don't declare 'from' value as that is the element's current alpha value, here we're essentially animating from 1 to 0
+                    duration: 300,
+                  },
+                  translationY: {
+                    to: -32, // Animate translationY from 0dp to -32dp
+                    duration: 300,
+                  },
+                },
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
+                  alpha: {
+                    to: 0,
+                    duration: 300,
+                  },
+                  translationY: {
+                    to: 32, // Animate translationY from 0dp to 32dp
+                    duration: 300,
+                  },
+                },
+              ],
+              // content: {
+              //   translationX: {
+              //     from: 0,
+              //     to: windowSizeTools.getSize().width,
+              //     duration: 300,
+              //   },
+              // },
             },
           },
         },
