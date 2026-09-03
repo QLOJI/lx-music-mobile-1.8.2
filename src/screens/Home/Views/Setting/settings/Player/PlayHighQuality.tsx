@@ -15,7 +15,6 @@ const QUALITY_LABELS: Partial<Record<LX.Quality, string>> = {
   flac: 'Flac',
   flac24bit: 'Flac24bit',
   atmos: 'Atmos',
-  atmosplus: 'Atmos_Plus',
   master: 'Master',
 }
 
