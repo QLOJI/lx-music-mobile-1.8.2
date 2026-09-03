@@ -149,9 +149,8 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  springDuration: 0.75,
-                  springDamping: 0.9,
-                  interpolation: { type: 'spring' },
+                  duration: 560,
+                  interpolation: { type: 'accelerateDecelerate' },
                 },
               ],
               elementTransitions: [
@@ -191,9 +190,8 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  springDuration: 0.75,
-                  springDamping: 0.9,
-                  interpolation: { type: 'spring' },
+                  duration: 560,
+                  interpolation: { type: 'accelerateDecelerate' },
                 },
               ],
               elementTransitions: [
@@ -269,9 +267,8 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
                 {
                   fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
                   toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
-                  springDuration: 0.75,
-                  springDamping: 0.9,
-                  interpolation: { type: 'spring' },
+                  duration: 560,
+                  interpolation: { type: 'accelerateDecelerate' },
                 },
               ],
               elementTransitions: [
@@ -310,9 +307,8 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
                 {
                   fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
                   toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
-                  springDuration: 0.75,
-                  springDamping: 0.9,
-                  interpolation: { type: 'spring' },
+                  duration: 560,
+                  interpolation: { type: 'accelerateDecelerate' },
                 },
               ],
               elementTransitions: [
