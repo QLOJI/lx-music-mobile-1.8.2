@@ -84,7 +84,7 @@ export default forwardRef<PlayLineType, PlayLineProps>(({ onPlayLine }, ref) => 
     <Animated.View style={{ ...styles.playLine, opacity: opsAnim }}>
       <Text style={styles.label} color={theme['c-primary-font']} size={13}>{timeLabel}</Text>
       <View style={styles.lineContent}>
-        <View style={{ ...styles.line, borderBottomColor: theme['c-primary-alpha-300'] }} />
+        <View style={{ ...styles.line, borderTopColor: theme['c-primary-alpha-300'] }} />
         <TouchableOpacity style={styles.button} onPress={handlePlayLine}>
           <Icon name="play" color={theme['c-button-font']} size={18} />
         </TouchableOpacity>
@@ -124,7 +124,9 @@ const styles = createStyle({
   },
   line: {
     marginLeft: 30,
-    borderBottomWidth: BorderWidths.normal,
+    // iOS 上高度为 0 的 View 不会绘制 dashed 边框，这里给一个实际高度
+    height: BorderWidths.normal2,
+    borderTopWidth: BorderWidths.normal2,
     borderStyle: 'dashed',
     flex: 1,
   },
