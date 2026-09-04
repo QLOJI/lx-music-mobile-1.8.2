@@ -70,13 +70,36 @@ const registerPlaybackService = async() => {
   })
 
   TrackPlayer.addEventListener(TPEvent.RemoteDuck, ({ permanent, paused, ducking }) => {
-    // On iOS, interruptions surface through RemoteDuck and we need to explicitly
-    // restore playback/volume after the system finishes ducking or pausing audio.
+    // iOS 无 Android 的“永久/临时”audio focus 区分，来电/它App出声的“打断开始”与
+    // “打断结束”都可能以 permanent==true 送达。这里改用 paused 区分两种状态，
+    // 避免“结束”事件被当成永久失去焦点、把待自动续播标记覆盖掉而不恢复。
+    if (Platform.OS == 'ios') {
+      if (ducking) {
+        // 仅降低音量(混合播放)：暂不暂停，记录待恢复
+        shouldResumeAfterDuck ||= playerState.isPlay
+        clearDuckRecoveryTimeouts()
+        return
+      }
+      if (paused) {
+        // 打断开始：暂停前在播放则记为“待自动续播”（用 ||= 防止 fork 先暂停导致 isPlay 已变 false）
+        shouldResumeAfterDuck = shouldResumeAfterDuck || playerState.isPlay
+        clearDuckRecoveryTimeouts()
+        void pause()
+        return
+      }
+      // 打断结束 / 音量恢复：若之前被自动暂停则继续播放
+      restoreConfiguredVolume()
+      if (shouldResumeAfterDuck) {
+        shouldResumeAfterDuck = false
+        play()
+      }
+      return
+    }
+
+    // —— Android：保留原 audio focus 语义 ——
     if (permanent) {
-      // Android 永久失去焦点(其它App持续出声)不自动抢回；
-      // iOS 无 Android 的“永久/临时”区分，来电、它App出声、持续占用都表现为可恢复的中断，
-      // 暂停前若在播放则记为“待自动续播”，等系统结束中断后再恢复
-      shouldResumeAfterDuck = Platform.OS == 'ios' ? playerState.isPlay : false
+      // Android 永久失去焦点(其它App持续出声)不自动抢回
+      shouldResumeAfterDuck = false
       clearDuckRecoveryTimeouts()
       if (paused) void pause()
       return
@@ -95,7 +118,7 @@ const registerPlaybackService = async() => {
       return
     }
 
-    if (Platform.OS == 'ios' || ducking === false) restoreConfiguredVolume()
+    if (ducking === false) restoreConfiguredVolume()
 
     if (shouldResumeAfterDuck) {
       shouldResumeAfterDuck = false
