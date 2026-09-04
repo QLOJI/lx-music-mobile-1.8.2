@@ -1,7 +1,6 @@
-import { createList, setTempList } from '@/core/list'
-import { playList } from '@/core/player/player'
+import { createList } from '@/core/list'
+import { refreshDefaultList, stageOnlineListToDefault } from '@/core/playListToDefault'
 import { getListDetail, getListDetailAll } from '@/core/songlist'
-import { LIST_IDS } from '@/config/constant'
 import listState from '@/store/list/state'
 import syncSourceList from '@/core/syncSourceList'
 import { confirmDialog, toMD5, toast } from '@/utils/tools'
@@ -11,24 +10,16 @@ const getListId = (id: string, source: LX.OnlineSource) => `${source}__${id}`
 
 export const handlePlay = async(id: string, source: Source, list?: LX.Music.MusicInfoOnline[], index = 0) => {
   const listId = getListId(id, source)
-  let isPlayingList = false
   // console.log(list)
   if (!list?.length) list = (await getListDetail(id, source, 1)).list
   if (list?.length) {
-    await setTempList(listId, [...list])
-    void playList(LIST_IDS.TEMP, index)
-    isPlayingList = true
+    // 先把点击歌曲所在的歌单（当前已加载部分）并入试听列表顶部并开始播放
+    await stageOnlineListToDefault(listId, [...list], index)
   }
   const fullList = await getListDetailAll(source, id)
   if (!fullList.length) return
-  if (isPlayingList) {
-    if (listState.tempListMeta.id == listId) {
-      await setTempList(listId, [...fullList])
-    }
-  } else {
-    await setTempList(listId, [...fullList])
-    void playList(LIST_IDS.TEMP, index)
-  }
+  // 全量拉取完成后原位扩容顶部这一段（若期间已切到其它列表则自动跳过）
+  await refreshDefaultList(listId, [...fullList])
 }
 
 export const handleCollect = async(id: string, source: Source, name: string) => {
