@@ -15,27 +15,17 @@ const parseRgb = (color: string) => {
   }
 }
 
-const blendColor = (from: string, to: string, progress: number) => {
-  const start = parseRgb(from)
-  const end = parseRgb(to)
-  if (!start || !end) return progress >= 0.5 ? to : from
-  const p = Math.max(0, Math.min(progress, 1))
-  const mix = (a: number, b: number) => Math.round(a + (b - a) * p)
-  const alpha = start.a + (end.a - start.a) * p
-  return `rgba(${mix(start.r, end.r)}, ${mix(start.g, end.g)}, ${mix(start.b, end.b)}, ${alpha.toFixed(2)})`
-}
+const mix = (a: number, b: number, p: number) => Math.round(a + (b - a) * p)
 
-const splitWordProgress = (text: string, progress: number) => {
-  const chars = Array.from(text)
-  if (!chars.length) return { playedCount: 0, currentProgress: 0 }
-  const exact = chars.length * Math.max(0, Math.min(progress, 1))
-  const playedCount = Math.floor(exact)
-  return {
-    playedCount,
-    currentProgress: exact - playedCount,
-  }
-}
+// 逐字进度时仅对“边界字”做一次数值混合（不再整行逐字正则解析）
+const blendColor = (
+  from: { r: number, g: number, b: number, a: number },
+  to: { r: number, g: number, b: number, a: number },
+  progress: number,
+) => `rgba(${mix(from.r, to.r, progress)}, ${mix(from.g, to.g, progress)}, ${mix(from.b, to.b, progress)}, ${(from.a + (to.a - from.a) * progress).toFixed(2)})`
 
+// 本行只渲染为固定少量分段节点：已唱段 + 当前边界字(逐 tick 变色) + 未唱段，
+// 逐字进度时不再每 tick 重建整行的每个词/每个字，把元素数从 ~30+ 降到 ~3。
 export default memo(({
   words,
   activeWordIndex,
@@ -51,30 +41,60 @@ export default memo(({
   playedColor: string
   inactiveColor: string
 }) => {
-const content = useMemo(() => {
-    return words.map((word, index) => {
-      if (index < activeWordIndex) {
-        return <Text key={index} size={size} color={playedColor}>{word.text}</Text>
-      }
-      if (index > activeWordIndex) {
-        return <Text key={index} size={size} color={inactiveColor}>{word.text}</Text>
-      }
+  // 两端颜色每渲染只解析一次
+  const rgb = useMemo(() => ({
+    played: parseRgb(playedColor),
+    inactive: parseRgb(inactiveColor),
+  }), [playedColor, inactiveColor])
 
-      const { playedCount, currentProgress } = splitWordProgress(word.text, activeWordProgress)
-      const chars = Array.from(word.text)
-      return (
-        <Text key={index} size={size}>
-          {
-            chars.map((char, charIndex) => {
-              if (charIndex < playedCount) return <Text key={charIndex} size={size} color={playedColor}>{char}</Text>
-              if (charIndex > playedCount) return <Text key={charIndex} size={size} color={inactiveColor}>{char}</Text>
-              return <Text key={charIndex} size={size} color={blendColor(inactiveColor, playedColor, currentProgress)}>{char}</Text>
-            })
-          }
-        </Text>
-      )
-    })
-  }, [words, activeWordIndex, activeWordProgress, size, playedColor, inactiveColor])
+  const segments = useMemo(() => {
+    const playedParts: string[] = []
+    const inactiveParts: string[] = []
+    // 无歌词词段、或尚未进入本行：整行按“未唱”色
+    if (!words.length || activeWordIndex < 0) {
+      const inactiveText = words.map(w => w.text).join('')
+      return { playedText: '', activeChar: null, activeCharColor: inactiveColor, inactiveText }
+    }
+    for (let i = 0; i < words.length; i++) {
+      if (i < activeWordIndex) playedParts.push(words[i].text)
+      else if (i > activeWordIndex) inactiveParts.push(words[i].text)
+    }
 
-  return <>{content}</>
+    const chars = Array.from(words[activeWordIndex].text)
+    if (chars.length) {
+      const exact = chars.length * Math.max(0, Math.min(activeWordProgress, 1))
+      const playedCount = Math.floor(exact)
+      const currentProgress = exact - playedCount
+      playedParts.push(chars.slice(0, playedCount).join(''))
+      if (playedCount < chars.length) {
+        // 当前词未唱完：抽出边界字与剩余部分，仅边界字随字内进度由未唱色混入已唱色
+        const boundary = chars[playedCount]
+        inactiveParts.unshift(chars.slice(playedCount + 1).join(''))
+        const activeCharColor = (rgb.played && rgb.inactive)
+          ? blendColor(rgb.inactive, rgb.played, currentProgress)
+          : (currentProgress >= 0.5 ? playedColor : inactiveColor)
+        return {
+          playedText: playedParts.join(''),
+          activeChar: boundary,
+          activeCharColor,
+          inactiveText: inactiveParts.join(''),
+        }
+      }
+    }
+    // 当前词也已整词唱完：无边界字，剩余全进未唱段（此时为空）
+    return {
+      playedText: playedParts.join(''),
+      activeChar: null,
+      activeCharColor: inactiveColor,
+      inactiveText: inactiveParts.join(''),
+    }
+  }, [words, activeWordIndex, activeWordProgress, playedColor, inactiveColor, rgb])
+
+  return (
+    <>
+      {segments.playedText ? <Text key="played" size={size} color={playedColor}>{segments.playedText}</Text> : null}
+      {segments.activeChar != null ? <Text key="active" size={size} color={segments.activeCharColor}>{segments.activeChar}</Text> : null}
+      {segments.inactiveText ? <Text key="inactive" size={size} color={inactiveColor}>{segments.inactiveText}</Text> : null}
+    </>
+  )
 })
