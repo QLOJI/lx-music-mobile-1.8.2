@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Lyric, { type Lines } from 'lrc-file-parser'
 import LxLyricPlayer, { type LxLyricLine } from './lxLyricPlayer'
 // import { getStore, subscribe } from '@/store'
@@ -150,6 +150,37 @@ export const useLrcPlay = (autoUpdate = true) => {
   }, [autoUpdate])
 
   return lrcInfo
+}
+
+// 仅当整行文本变化才更新（逐字(卡拉OK)歌词播放时同一行内每 50ms 都有 wordProgress 回调，
+// useLrcPlay 会因此 20Hz setState。此 hook 用 ref 记住上次已 setState 的 text，
+// 只在换行时才重渲染，适合只展示整行文本、不需要字级进度的场景(如首页迷你条状态文本)。
+export const useLrcPlayText = (autoUpdate = true) => {
+  const [lrcText, setLrcText] = useState({ text: lrcTools.currentLineData.text })
+  const textRef = useRef(lrcTools.currentLineData.text)
+  useEffect(() => {
+    if (!autoUpdate) return
+    const setLrcCallback: SetLyricHook = () => {
+      textRef.current = ''
+      setLrcText({ text: '' })
+    }
+    const playCallback: PlayHook = (line, text) => {
+      if (textRef.current == text) return
+      textRef.current = text
+      setLrcText({ text })
+    }
+    lrcTools.addSetLyricHook(setLrcCallback)
+    lrcTools.addPlayHook(playCallback)
+    const text = lrcTools.currentLineData.text
+    textRef.current = text
+    setLrcText({ text })
+    return () => {
+      lrcTools.removeSetLyricHook(setLrcCallback)
+      lrcTools.removePlayHook(playCallback)
+    }
+  }, [autoUpdate])
+
+  return lrcText
 }
 
 // on lyric set hook
