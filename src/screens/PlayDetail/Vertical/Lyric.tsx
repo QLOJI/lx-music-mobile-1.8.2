@@ -142,6 +142,9 @@ const LrcLine = memo(({ line, lineNum, activeLine, activeWordIndex, activeWordPr
 })
 const wait = async() => new Promise(resolve => setTimeout(resolve, 100))
 
+// key 稳定：不再在组件体内每次重建，避免 FlatList 反复比较 key
+const getLyricKey: FlatListType['keyExtractor'] = (item, index) => `${index}${item.text}`
+
 export default () => {
   const lyricLines = useLrcSet()
   const { line, wordIndex, wordProgress } = useLrcPlay()
@@ -330,12 +333,13 @@ export default () => {
     global.app_event.setProgress(time)
   }, [])
 
-  const renderItem: FlatListType['renderItem'] = ({ item, index }) => {
+  // renderItem 引用稳定化：仅在真正影响行的值变化时才重建，减少因其它重渲染引起的整表重跑
+  const renderItem = useCallback<FlatListType['renderItem']>(({ item, index }) => {
     return (
       <LrcLine line={item} lineNum={index} activeLine={line} activeWordIndex={wordIndex} activeWordProgress={wordProgress} onLayout={handleLineLayout} />
     )
-  }
-  const getkey: FlatListType['keyExtractor'] = (item, index) => `${index}${item.text}`
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [line, wordIndex, wordProgress, handleLineLayout])
 
   const spaceComponent = useMemo(() => (
     <View style={styles.space} onLayout={handleSpaceLayout}></View>
@@ -346,7 +350,7 @@ export default () => {
       <FlatList
         data={lyricLines}
         renderItem={renderItem}
-        keyExtractor={getkey}
+        keyExtractor={getLyricKey}
         style={styles.container}
         ref={flatListRef}
         showsVerticalScrollIndicator={false}
