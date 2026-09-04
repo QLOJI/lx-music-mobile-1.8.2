@@ -190,8 +190,8 @@ const styles = createStyle({
   },
   label: {
     position: 'absolute',
-    // 时间文本浮在虚线之上：只锚定底部（距容器底 21），右对齐由外层动态 right 控制
-    bottom: 21,
+    // 时间文本浮在虚线之上方并贴近虚线：只锚定底部（距容器底 19），右对齐由外层动态 right 控制
+    bottom: 19,
     flexDirection: 'row',
     alignItems: 'center',
   },
