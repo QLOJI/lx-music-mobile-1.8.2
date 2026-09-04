@@ -10,6 +10,7 @@ import {
 } from './screenNames'
 
 import themeState from '@/store/theme/state'
+import { NAV_SHEAR_NATIVE_IDS } from '@/config/constant'
 import { getStatusBarStyle } from './utils'
 import { windowSizeTools } from '@/utils/windowSizeTools'
 import { type ListInfoItem } from '@/store/songlist/state'
@@ -84,7 +85,7 @@ export async function pushHomeScreen() {
     },
   })
 }
-export function pushPlayDetailScreen(componentId: string) {
+export function pushPlayDetailScreen(componentId: string, skipAnimation = false) {
   /*
     Navigation.setDefaultOptions({
       topBar: {
@@ -143,12 +144,77 @@ export function pushPlayDetailScreen(componentId: string) {
             componentBackgroundColor: theme['c-content-background'],
           },
           animations: {
-            // 完全无动画：点击封面立即切换进/出播放页，不做共享元素/透明度/位移动画
-            push: {
+            // 还原自然过渡：封面共享元素缩放移动（进/出），标题/播放条淡入上移/下移
+            push: skipAnimation ? {
+              // 启动直达播放页：此时首页迷你封面尚未挂载，无共享元素来源，直接即时切入
               enabled: false,
+            } : {
+              sharedElementTransitions: [
+                {
+                  fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  duration: 450,
+                  interpolation: { type: 'accelerateDecelerate' },
+                },
+              ],
+              elementTransitions: [
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
+                  alpha: {
+                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
+                    duration: 350,
+                  },
+                  translationY: {
+                    from: -32, // Animate translationY from -32dp to 0dp
+                    duration: 350,
+                  },
+                },
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
+                  alpha: {
+                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
+                    duration: 350,
+                  },
+                  translationY: {
+                    from: 32, // Animate translationY from 32dp to 0dp
+                    duration: 350,
+                  },
+                },
+              ],
             },
             pop: {
-              enabled: false,
+              sharedElementTransitions: [
+                {
+                  fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
+                  duration: 450,
+                  interpolation: { type: 'accelerateDecelerate' },
+                },
+              ],
+              elementTransitions: [
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
+                  alpha: {
+                    to: 0, // We don't declare 'from' value as that is the element's current alpha value, here we're essentially animating from 1 to 0
+                    duration: 350,
+                  },
+                  translationY: {
+                    to: -32, // Animate translationY from 0dp to -32dp
+                    duration: 350,
+                  },
+                },
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
+                  alpha: {
+                    to: 0,
+                    duration: 350,
+                  },
+                  translationY: {
+                    to: 32, // Animate translationY from 0dp to 32dp
+                    duration: 350,
+                  },
+                },
+              ],
             },
           },
         },
@@ -186,12 +252,52 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
             componentBackgroundColor: theme['c-content-background'],
           },
           animations: {
-            // 完全无动画：点击封面立即切换进/出歌单详情页，不做共享元素/透明度/位移动画
+            // 还原自然过渡：封面共享元素缩放移动（进/出），标题淡入平移
             push: {
-              enabled: false,
+              sharedElementTransitions: [
+                {
+                  fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
+                  toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
+                  duration: 450,
+                  interpolation: { type: 'accelerateDecelerate' },
+                },
+              ],
+              elementTransitions: [
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
+                  alpha: {
+                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
+                    duration: 350,
+                  },
+                  translationX: {
+                    from: 16, // Animate translationX from 16dp to 0dp
+                    duration: 350,
+                  },
+                },
+              ],
             },
             pop: {
-              enabled: false,
+              sharedElementTransitions: [
+                {
+                  fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
+                  toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
+                  duration: 450,
+                  interpolation: { type: 'accelerateDecelerate' },
+                },
+              ],
+              elementTransitions: [
+                {
+                  id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
+                  alpha: {
+                    to: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
+                    duration: 350,
+                  },
+                  translationX: {
+                    to: 16, // Animate translationX from 0dp to 16dp
+                    duration: 350,
+                  },
+                },
+              ],
             },
           },
         },
