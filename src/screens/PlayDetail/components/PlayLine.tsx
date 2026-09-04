@@ -6,6 +6,7 @@ import { type Lines } from 'lrc-file-parser'
 import { useTheme } from '@/store/theme/hook'
 import { formatPlayTime2 } from '@/utils'
 import { Icon } from '@/components/common/Icon'
+import { scaleSizeW } from '@/utils/pixelRatio'
 
 
 export interface PlayLineType {
@@ -119,14 +120,17 @@ export default forwardRef<PlayLineType, PlayLineProps>(({ onPlayLine }, ref) => 
 
   // 渐变颜色：左侧浅 → 右侧深，均由主题主色派生
   const rgb = parseRgb(theme['c-primary'] || theme['c-primary-alpha-300']) ?? { r: 255, g: 255, b: 255 }
-  const dashCount = dashWidth > 0 ? Math.floor((dashWidth + DASH_GAP) / (DASH_LEN + DASH_GAP)) : 0
+  // 小色块/间距由 createStyle 按全局字体缩放，dashWidth 是缩放后的实际布局宽度；
+  // 这里用缩放后的真实段宽算数量，保证任意字体大小下虚线都铺满整段、不再留下右侧空白
+  const dashStep = scaleSizeW(DASH_LEN) + scaleSizeW(DASH_GAP)
+  const dashCount = dashWidth > 0 && dashStep > 0 ? Math.floor((dashWidth + scaleSizeW(DASH_GAP)) / dashStep) : 0
   const getDashColor = (index: number) => {
     const ratio = dashCount > 1 ? index / (dashCount - 1) : 1
     const alpha = (DASH_ALPHA_MIN + (DASH_ALPHA_MAX - DASH_ALPHA_MIN) * ratio).toFixed(2)
     return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`
   }
-  // 时间文本右对齐虚线的右端：虚线右端距容器右缘 = 行间距 + 播放按钮宽度
-  const labelRight = buttonWidth > 0 ? buttonWidth + ROW_GAP : LABEL_RIGHT_FALLBACK
+  // 时间文本右对齐虚线的右端：虚线右端距容器右缘 = 缩放后的行间距 + 播放按钮宽度
+  const labelRight = buttonWidth > 0 ? buttonWidth + scaleSizeW(ROW_GAP) : scaleSizeW(LABEL_RIGHT_FALLBACK)
 
   return (
     <Animated.View style={{ ...styles.playLine, opacity: opsAnim }}>
