@@ -190,8 +190,9 @@ const styles = createStyle({
   },
   label: {
     position: 'absolute',
-    // 时间文本浮在虚线之上方并贴近虚线：只锚定底部（距容器底 19），右对齐由外层动态 right 控制
-    bottom: 19,
+    // 时间文本浮在虚线之上并基本贴线：只锚定底部（距容器底 16），右对齐由外层动态 right 控制。
+    // 数字行盒下方约含 2-3px 空白(descender)，故文字实际下缘与虚线的间距 ≈ 虚线点间距(2px)
+    bottom: 16,
     flexDirection: 'row',
     alignItems: 'center',
   },
