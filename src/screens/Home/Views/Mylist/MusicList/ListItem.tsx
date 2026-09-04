@@ -9,8 +9,22 @@ import { useAssertApiSupport } from '@/store/common/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import Text from '@/components/common/Text'
 import Badge from '@/components/common/Badge'
+import { useI18n } from '@/lang'
 
 export const ITEM_HEIGHT = scaleSizeH(LIST_ITEM_HEIGHT)
+
+// 由曲目标注的可用音质(_qualitys)取最高档文本，与搜索/歌单页角标一致（沿用在线列表文案）
+const getQualityText = (t: ReturnType<typeof useI18n>, musicInfo: LX.Music.MusicInfoOnline) => {
+  const qualitys = musicInfo.meta._qualitys
+  if (!qualitys) return ''
+  if (qualitys.master) return 'Master'
+  if (qualitys.atmosplus) return 'atmosplus'
+  if (qualitys.atmos) return 'atmos'
+  if (qualitys.flac24bit) return t('quality_lossless_24bit')
+  if (qualitys.flac || qualitys.ape) return t('quality_lossless')
+  if (qualitys['320k']) return t('quality_high_quality')
+  return ''
+}
 
 
 export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPress, selectedList, rowInfo, isShowAlbumName, isShowInterval }: {
@@ -26,6 +40,7 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
   isShowInterval: boolean
 }) => {
   const theme = useTheme()
+  const t = useI18n()
 
   const isSelected = selectedList.includes(item)
   // console.log(item.name, selectedList, selectedList.includes(item))
@@ -42,6 +57,9 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
   const active = activeIndex == index
 
   const singer = `${item.singer}${isShowAlbumName && item.meta.albumName ? ` · ${item.meta.albumName}` : ''}`
+  // 平台字母徽标后追加歌曲可用的最高音质：如 “KG Master”/“KG SQ”（本地歌曲无音质标注，保持不变）
+  const sourceTag = item.source.toUpperCase()
+  const qualityText = item.source == 'local' ? '' : getQualityText(t, item as LX.Music.MusicInfoOnline)
 
   return (
     <View style={{ ...styles.listItem, width: rowInfo.rowWidth, height: ITEM_HEIGHT, backgroundColor: isSelected ? theme['c-primary-background-hover'] : 'rgba(0,0,0,0)', opacity: isSupported ? 1 : 0.5 }}>
@@ -56,7 +74,7 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
           <Text color={active ? theme['c-primary-font'] : theme['c-font']} numberOfLines={1}>{item.name}</Text>
           {/* </View> */}
           <View style={styles.listItemSingle}>
-            <Badge>{item.source.toUpperCase()}</Badge>
+            <Badge>{sourceTag}{qualityText ? ` ${qualityText}` : ''}</Badge>
             <Text style={styles.listItemSingleText} size={11} color={active ? theme['c-primary-alpha-200'] : theme['c-500']} numberOfLines={1}>
               {singer}
             </Text>
