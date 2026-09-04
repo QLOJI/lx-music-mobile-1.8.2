@@ -166,8 +166,9 @@ const styles = createStyle({
     // backgroundColor: 'rgba(0,0,0,0.1)',
     position: 'absolute',
     width: '100%',
-    height: 20,
-    top: -10,
+    // 高度加高，使时间文本能整体浮在虚线之上（虚线仍居中于 40% 拖拽线）
+    height: 34,
+    top: -17,
     flexDirection: 'row',
     alignItems: 'center',
     gap: ROW_GAP,
@@ -189,8 +190,8 @@ const styles = createStyle({
   },
   label: {
     position: 'absolute',
-    top: 0,
-    bottom: 0,
+    // 时间文本浮在虚线之上：只锚定底部（距容器底 21），右对齐由外层动态 right 控制
+    bottom: 21,
     flexDirection: 'row',
     alignItems: 'center',
   },
