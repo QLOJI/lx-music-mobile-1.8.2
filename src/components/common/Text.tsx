@@ -2,8 +2,7 @@ import { memo, type ComponentProps } from 'react'
 import { Text, type TextProps as _TextProps, StyleSheet, Animated, type ColorValue, type TextStyle } from 'react-native'
 import { useTextShadow, useTheme } from '@/store/theme/hook'
 import { setSpText } from '@/utils/pixelRatio'
-import { useAnimateColor } from '@/utils/hooks/useAnimateColor'
-import { DEFAULT_DURATION, useAnimateNumber } from '@/utils/hooks/useAnimateNumber'
+import { useAnimateNumber } from '@/utils/hooks/useAnimateNumber'
 // import { AppColors } from '@/theme'
 
 export interface TextProps extends _TextProps {
@@ -98,12 +97,17 @@ export interface AnimatedColorTextProps extends _AnimatedTextProps {
    */
   opacity?: number
 }
+// 歌词行颜色过渡不再走 800ms JS 线程逐帧动画（Animated 颜色不支持 native driver，每行每次
+// 切换都占用 JS 线程）。改为：颜色即时切换 + 透明度用 native driver 做 ~300ms 淡入淡出，
+// 同一节点只剩 opacity 一个动画属性（无 native/JS 驱动混用问题），静态行也不再持有/运行 JS 动画。
+const COLOR_TRANSITION_DURATION = 300
+
 export const AnimatedColorText = ({ style, size = 15, opacity: _opacity, color: _color, children, ...props }: AnimatedColorTextProps) => {
   const theme = useTheme()
   const textShadow = useTextShadow()
 
-  const [color] = useAnimateColor(_color ?? theme['c-font'])
-  const [opacity] = useAnimateNumber(_opacity ?? 1, DEFAULT_DURATION, false)
+  const color = _color ?? (theme['c-font'] as string)
+  const [opacity] = useAnimateNumber(_opacity ?? 1, COLOR_TRANSITION_DURATION, true)
 
   style = StyleSheet.compose(textShadow ? {
     // fontFamily: 'System',
