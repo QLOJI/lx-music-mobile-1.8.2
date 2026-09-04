@@ -283,6 +283,10 @@ export default () => {
   const handlePlayLine = useCallback((time: number) => {
     playLineRef.current?.setVisible(false)
     markTimeoutExitInteraction()
+    // 目标时间若等于/超过歌曲总时长，会被系统当作“已播放到结尾”而直接切下一首。
+    // 这里将其收回到总长之前一小段，避免点击三角后误跳歌。
+    const maxTime = playerState.progress.maxPlayTime
+    if (maxTime > 0 && time >= maxTime) time = Math.max(maxTime - 0.5, 0)
     global.app_event.setProgress(time)
   }, [])
 
