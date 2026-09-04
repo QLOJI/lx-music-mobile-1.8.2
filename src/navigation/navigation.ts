@@ -153,7 +153,7 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  duration: 450,
+                  duration: 250,
                   interpolation: { type: 'accelerateDecelerate' },
                 },
               ],
@@ -162,22 +162,22 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
                   alpha: {
                     from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 350,
+                    duration: 200,
                   },
                   translationY: {
                     from: -32, // Animate translationY from -32dp to 0dp
-                    duration: 350,
+                    duration: 200,
                   },
                 },
                 {
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
                   alpha: {
                     from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 350,
+                    duration: 200,
                   },
                   translationY: {
                     from: 32, // Animate translationY from 32dp to 0dp
-                    duration: 350,
+                    duration: 200,
                   },
                 },
               ],
@@ -187,7 +187,7 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                 {
                   fromId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
                   toId: NAV_SHEAR_NATIVE_IDS.playDetail_pic,
-                  duration: 450,
+                  duration: 250,
                   interpolation: { type: 'accelerateDecelerate' },
                 },
               ],
@@ -196,22 +196,22 @@ export function pushPlayDetailScreen(componentId: string, skipAnimation = false)
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_header,
                   alpha: {
                     to: 0, // We don't declare 'from' value as that is the element's current alpha value, here we're essentially animating from 1 to 0
-                    duration: 350,
+                    duration: 200,
                   },
                   translationY: {
                     to: -32, // Animate translationY from 0dp to -32dp
-                    duration: 350,
+                    duration: 200,
                   },
                 },
                 {
                   id: NAV_SHEAR_NATIVE_IDS.playDetail_player,
                   alpha: {
                     to: 0,
-                    duration: 350,
+                    duration: 200,
                   },
                   translationY: {
                     to: 32, // Animate translationY from 0dp to 32dp
-                    duration: 350,
+                    duration: 200,
                   },
                 },
               ],
@@ -252,52 +252,12 @@ export function pushSonglistDetailScreen(componentId: string, info: ListInfoItem
             componentBackgroundColor: theme['c-content-background'],
           },
           animations: {
-            // 还原自然过渡：封面共享元素缩放移动（进/出），标题淡入平移
+            // 取消各平台歌单/排行榜详情页封面的共享元素进出动画，改为即时切换
             push: {
-              sharedElementTransitions: [
-                {
-                  fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
-                  toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
-                  duration: 450,
-                  interpolation: { type: 'accelerateDecelerate' },
-                },
-              ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
-                  alpha: {
-                    from: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 350,
-                  },
-                  translationX: {
-                    from: 16, // Animate translationX from 16dp to 0dp
-                    duration: 350,
-                  },
-                },
-              ],
+              enabled: false,
             },
             pop: {
-              sharedElementTransitions: [
-                {
-                  fromId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_to_${info.id}`,
-                  toId: `${NAV_SHEAR_NATIVE_IDS.songlistDetail_pic}_from_${info.id}`,
-                  duration: 450,
-                  interpolation: { type: 'accelerateDecelerate' },
-                },
-              ],
-              elementTransitions: [
-                {
-                  id: NAV_SHEAR_NATIVE_IDS.songlistDetail_title,
-                  alpha: {
-                    to: 0, // We don't declare 'to' value as that is the element's current alpha value, here we're essentially animating from 0 to 1
-                    duration: 350,
-                  },
-                  translationX: {
-                    to: 16, // Animate translationX from 0dp to 16dp
-                    duration: 350,
-                  },
-                },
-              ],
+              enabled: false,
             },
           },
         },
