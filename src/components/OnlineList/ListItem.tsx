@@ -9,33 +9,17 @@ import { useTheme } from '@/store/theme/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
 import { LIST_ITEM_HEIGHT } from '@/config/constant'
 import { createStyle, type RowInfo } from '@/utils/tools'
+import { getQualityTagInfo } from '@/utils/musicQuality'
 
 export const ITEM_HEIGHT = scaleSizeH(LIST_ITEM_HEIGHT)
 
 const useQualityTag = (musicInfo: LX.Music.MusicInfoOnline) => {
   const t = useI18n()
-  let info: { type: BadgeType | null, text: string } = { type: null, text: '' }
-  if (musicInfo.meta._qualitys.master) {
-    info.type = 'secondary'
-    info.text = 'Master'
-  } else if (musicInfo.meta._qualitys.atmosplus) {
-    info.type = 'secondary'
-    info.text = 'atmosplus'
-  } else if (musicInfo.meta._qualitys.atmos) {
-    info.type = 'secondary'
-    info.text = 'atmos'
-  } else if (musicInfo.meta._qualitys.flac24bit) {
-    info.type = 'secondary'
-    info.text = t('quality_lossless_24bit')
-  } else if (musicInfo.meta._qualitys.flac ?? musicInfo.meta._qualitys.ape) {
-    info.type = 'secondary'
-    info.text = t('quality_lossless')
-  } else if (musicInfo.meta._qualitys['320k']) {
-    info.type = 'tertiary'
-    info.text = t('quality_high_quality')
+  const { text, premium } = getQualityTagInfo(musicInfo, t)
+  return {
+    type: (text ? (premium ? 'secondary' : 'tertiary') : null) as BadgeType | null,
+    text,
   }
-
-  return info
 }
 
 export default memo(({ item, index, showSource, onPress, onLongPress, onShowMenu, selectedList, rowInfo, isShowAlbumName, isShowInterval }: {
