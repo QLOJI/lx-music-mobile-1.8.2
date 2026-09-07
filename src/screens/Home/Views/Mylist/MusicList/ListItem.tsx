@@ -7,24 +7,12 @@ import { createStyle, type RowInfo } from '@/utils/tools'
 import { useTheme } from '@/store/theme/hook'
 import { useAssertApiSupport } from '@/store/common/hook'
 import { scaleSizeH } from '@/utils/pixelRatio'
+import { getQualityTagInfo } from '@/utils/musicQuality'
 import Text from '@/components/common/Text'
 import Badge from '@/components/common/Badge'
 import { useI18n } from '@/lang'
 
 export const ITEM_HEIGHT = scaleSizeH(LIST_ITEM_HEIGHT)
-
-// 由曲目标注的可用音质(_qualitys)取最高档文本，与搜索/歌单页角标一致（沿用在线列表文案）
-const getQualityText = (t: ReturnType<typeof useI18n>, musicInfo: LX.Music.MusicInfoOnline) => {
-  const qualitys = musicInfo.meta._qualitys
-  if (!qualitys) return ''
-  if (qualitys.master) return 'Master'
-  if (qualitys.atmosplus) return 'atmosplus'
-  if (qualitys.atmos) return 'atmos'
-  if (qualitys.flac24bit) return t('quality_lossless_24bit')
-  if (qualitys.flac || qualitys.ape) return t('quality_lossless')
-  if (qualitys['320k']) return t('quality_high_quality')
-  return ''
-}
 
 
 export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPress, selectedList, rowInfo, isShowAlbumName, isShowInterval }: {
@@ -59,7 +47,7 @@ export default memo(({ item, index, activeIndex, onPress, onShowMenu, onLongPres
   const singer = `${item.singer}${isShowAlbumName && item.meta.albumName ? ` · ${item.meta.albumName}` : ''}`
   // 平台字母徽标后追加歌曲可用的最高音质：如 “KG Master”/“KG SQ”（本地歌曲无音质标注，保持不变）
   const sourceTag = item.source.toUpperCase()
-  const qualityText = item.source == 'local' ? '' : getQualityText(t, item as LX.Music.MusicInfoOnline)
+  const qualityText = item.source == 'local' ? '' : getQualityTagInfo(item as LX.Music.MusicInfoOnline, t).text
 
   return (
     <View style={{ ...styles.listItem, width: rowInfo.rowWidth, height: ITEM_HEIGHT, backgroundColor: isSelected ? theme['c-primary-background-hover'] : 'rgba(0,0,0,0)', opacity: isSupported ? 1 : 0.5 }}>
