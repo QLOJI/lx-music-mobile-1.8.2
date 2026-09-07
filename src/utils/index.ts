@@ -1,5 +1,6 @@
 import { dateFormat } from './common'
 import he from 'he'
+import { MASTER_UMBRELLA_QUALITIES } from './musicQuality'
 
 export { tranditionalize as langS2T } from '@/utils/simplify-chinese-main'
 
@@ -57,18 +58,19 @@ export const toNewMusicInfo = (oldMusicInfo: any): LX.Music.MusicInfo => {
       })
     }
 
-    // 除酷我/咪咕外的源（酷狗/QQ/网易）：在线曲目一律在最高档之上追加 master 顶级，
-    // 保留原有档位（flac24bit 等）。让搜索/排行榜/歌单的角标显示 master，并按"优先播放音质"请求该档。
+    // 酷狗/QQ/网易：只有当曲目的顶级属于“无损及以上伞”时，才在最高档之上追加 synthetic master，
+    // 让小标可统一显示 Master；顶级仅为 320k/192k/128k 的曲目不再补 master，小标才能正确落到 HQ/192K/128K。
+    // （取流不读 _qualitys，此注入只影响展示与元数据，不影响最终取到的最优音质。）
     if (['kg', 'tx', 'wy'].includes(oldMusicInfo.source)) {
       const _qualitys = meta._qualitys as Record<string, any>
-      const realQualityList = ['flac24bit', 'flac', 'wav', 'ape', '320k', '192k', '128k']
-      const bestType = realQualityList.find(type => _qualitys[type])
-      if (!_qualitys.master) {
-        _qualitys.master = bestType ? { ..._qualitys[bestType] } : { size: 0 }
+      const masterRealQualityList = MASTER_UMBRELLA_QUALITIES.filter(type => type != 'master')
+      const bestType = masterRealQualityList.find(type => _qualitys[type])
+      if (bestType && !_qualitys.master) {
+        _qualitys.master = { ..._qualitys[bestType] }
       }
       const qualityList = meta.qualitys as any[]
-      if (qualityList && !qualityList.some(quality => quality && quality.type == 'master')) {
-        const best = bestType ? qualityList.find(quality => quality && quality.type == bestType) : null
+      if (bestType && qualityList && !qualityList.some(quality => quality && quality.type == 'master')) {
+        const best = qualityList.find(quality => quality && quality.type == bestType)
         qualityList.push(best ? { ...best, type: 'master' } : { type: 'master', size: 0 })
       }
     }
