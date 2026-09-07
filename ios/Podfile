@@ -126,16 +126,6 @@ target 'LxMusicMobile' do
   lx_build_libflac_xcframework
   pod 'LXLibFLAC', :path => './Vendor/LXLibFLAC'
 
-  use_react_native!(
-    :path => config[:reactNativePath],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
-    # An absolute path to your application root.
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
-  )
 
   target 'LxMusicMobileTests' do
     inherit! :complete
